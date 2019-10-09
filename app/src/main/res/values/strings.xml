@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Filmfy</string>
+
+    <!-- Search screen -->
+    <string name="search_empty_place_holder">Please enter a genre to find movies e.g. Action</string>
+    <string name="search_hint">Enter genre</string>
+    <string name="search_button">Search</string>
+    <string name="search_error">Is not a valid genre</string>
+
+
+    <string name="menu_favorites">Favorites</string>
+
+    <!-- Favorites screen -->
+    <string name="favorites_title">Favorite movies</string>
+    <string name="favorites_empty_place_holder">There are no favorite movies!</string>
+
+    <!-- Detail screen-->
+    <string name="error_display_data">Something was wrong displaying the data</string>
+
+</resources>
