@@ -89,7 +89,7 @@ class SearchPresenterTest: KoinTest {
     @Test
     fun get_median(){
         val median = presenter.getMedia(medianList())
-        assertEquals(8.2, median, 0.0)
+        assertEquals(8.0, median, 0.0)
     }
 
     @Test
