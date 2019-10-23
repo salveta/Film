@@ -1,6 +1,13 @@
 package com.filmfy.utils
 
 import com.filmfy.domain.entitites.Film
+import com.filmfy.domain.entitites.FilmRequest
+import com.filmfy.domain.entitites.Metadata
+
+fun filmRequestFacke(): FilmRequest{
+    val metadata = Metadata(1,1,1)
+    return FilmRequest(metadata, fackeFilms())
+}
 
 fun fackeFilms(): ArrayList<Film>{
     val films = ArrayList<Film>()

@@ -1,11 +1,9 @@
 package com.filmfy.app.ui.search
 
 import android.util.Log
+import com.filmfy.di.rx.SchedulerProvider
 import com.filmfy.data.network.RetrofitAdapter
-import com.filmfy.domain.entitites.FilmRequest
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
-import retrofit2.Response
+import com.filmfy.domain.entitites.Film
 import com.filmfy.domain.interactor.AbstractInteractor
 
 class SearchImpl : AbstractInteractor() {
@@ -14,14 +12,14 @@ class SearchImpl : AbstractInteractor() {
         RetrofitAdapter.create()
     }
 
-    fun getfilms(genre: String, rating: String, pagination: String, limit: String, callback: SearchContract.Callback?){
+    fun getfilms(genre: String, rating: String, pagination: String, limit: String, callback: SearchContract.Callback?, schedule: SchedulerProvider){
         disposable = voucherApiServe.getFilms() // mock json call if can't run docker
 //        disposable = voucherApiServe.getFilms(genre, rating, pagination, limit)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeOn(schedule.io())
+            .observeOn(schedule.ui())
             .subscribe(
-                { result -> processFilmSearch(result, callback)},
-                { error -> processError(error) }
+                { result -> processFilmSearch(result.data, callback)},
+                { error -> processError(error, callback) }
             )
     }
 
@@ -29,10 +27,11 @@ class SearchImpl : AbstractInteractor() {
         clearComposite()
     }
 
-    private fun processFilmSearch(result : Response<FilmRequest>, callback: SearchContract.Callback?){
-        callback?.onResponseSearchFilm(result.body()?.data)
+    fun processFilmSearch(filmList : ArrayList<Film>?, callback: SearchContract.Callback?){
+        callback?.onResponseSearchFilm(filmList)
     }
-    private fun processError(error: Throwable){
+    private fun processError(error: Throwable, callback: SearchContract.Callback?){
+        callback?.onError()
         Log.e("Search", error.toString())
     }
 }

@@ -8,11 +8,11 @@ import android.view.View.VISIBLE
 import android.view.inputmethod.EditorInfo
 import androidx.annotation.Nullable
 import androidx.annotation.VisibleForTesting
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.IdlingResource
 import com.filmfy.R
+import com.filmfy.app.base.GenericActivity
 import com.filmfy.app.idlingResource.SimpleIdlingResource
 import com.filmfy.app.navigator.Navigator
 import com.filmfy.app.ui.search.adapter.SearchFilmAdapter
@@ -21,25 +21,20 @@ import com.filmfy.app.utils.showToast
 import com.filmfy.app.widget.RxBus
 import com.filmfy.app.widget.RxEvent
 import com.filmfy.domain.entitites.Film
-import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.activity_search.*
 import kotlinx.android.synthetic.main.view_movie_list.*
 import org.koin.android.ext.android.inject
 import org.koin.core.parameter.parametersOf
 
-const val LIMIT = 20
 
-class SearchActivity : AppCompatActivity(), SearchContract.View {
+class SearchActivity : GenericActivity(), SearchContract.View {
 
     private lateinit var scrollListener: RecyclerView.OnScrollListener
-    private lateinit var eventListener: Disposable
     private val presenter: SearchContract.Presenter by inject { parametersOf(this) }
 
-    private var pagination: Int = 0
     private var updatedFilms: Boolean = false
     private var adapter : SearchFilmAdapter? = null
-    private var film: ArrayList<Film> = ArrayList<Film>()
-
+    private var film: ArrayList<Film> = ArrayList()
 
     @Nullable
     var mIdlingResource: SimpleIdlingResource = SimpleIdlingResource()
@@ -91,8 +86,8 @@ class SearchActivity : AppCompatActivity(), SearchContract.View {
 
                 if (totalItemCount == lastItem + 1) {
                     updatedFilms = true
-                    pagination = pagination.plus(1)
-                    callPresenterDoSearch(editTextSearch?.text.toString(), pagination, gettingNewGenre = false, idlingResource = mIdlingResource)
+                    presenter.sumPagination()
+                    callPresenterDoSearch(editTextSearch?.text.toString(), gettingNewGenre = false, idlingResource = mIdlingResource)
                     recyclerViewMovieList.removeOnScrollListener(scrollListener)
                 }
             }
@@ -117,23 +112,23 @@ class SearchActivity : AppCompatActivity(), SearchContract.View {
     private fun configureSearchInputListeners() {
         editTextSearch.setOnEditorActionListener { textView, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                resetPagination()
-                callPresenterDoSearch(textView?.text.toString(), pagination, gettingNewGenre = true, idlingResource = mIdlingResource)
+                presenter.resetPagination()
+                callPresenterDoSearch(textView?.text.toString(), gettingNewGenre = true, idlingResource = mIdlingResource)
             }
             false
         }
 
         buttonSearch.setOnClickListener {
             buttonSearch.text?.toString()?.let {
-                resetPagination()
-                callPresenterDoSearch(editTextSearch?.text.toString(), pagination, gettingNewGenre = true, idlingResource = mIdlingResource)
+                presenter.resetPagination()
+                callPresenterDoSearch(editTextSearch?.text.toString(), gettingNewGenre = true, idlingResource = mIdlingResource)
                 hideSoftKeyboard()
             }
         }
     }
 
-    fun callPresenterDoSearch(textToSearch: String, pagination: Int, gettingNewGenre: Boolean, @Nullable idlingResource: SimpleIdlingResource?){
-        presenter.doSearch(textToSearch, pagination, LIMIT, gettingNewGenre = gettingNewGenre, idlingResource = idlingResource)
+    fun callPresenterDoSearch(textToSearch: String, gettingNewGenre: Boolean, @Nullable idlingResource: SimpleIdlingResource?){
+        presenter.doSearch(textToSearch, gettingNewGenre = gettingNewGenre, idlingResource = idlingResource)
     }
 
     override fun genreSearchError() {
@@ -159,10 +154,6 @@ class SearchActivity : AppCompatActivity(), SearchContract.View {
         Navigator.Search.openDetail(this@SearchActivity, film)
     }
 
-    override fun resetPagination() {
-        pagination = 0
-    }
-
     override fun resetFilms() {
         if(film.isNotEmpty()){
             film.clear()
@@ -172,7 +163,6 @@ class SearchActivity : AppCompatActivity(), SearchContract.View {
     override fun onDestroy() {
         super.onDestroy()
         presenter.destroy()
-        if (!eventListener.isDisposed) eventListener.dispose()
     }
 
     @VisibleForTesting

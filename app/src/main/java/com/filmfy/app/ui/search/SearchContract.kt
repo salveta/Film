@@ -12,20 +12,20 @@ interface SearchContract {
         fun genreSearchError()
         fun showFilms(film: ArrayList<Film>, media: Double)
         fun doVisibleFilmItems()
-        fun resetPagination()
         fun resetFilms()
         fun openDetail(film: Film)
     }
 
     interface Presenter: BasePresenter {
-        fun doSearch(textToSearch: String, pagination: Int, limit: Int, gettingNewGenre: Boolean, @Nullable idlingResource: SimpleIdlingResource?)
+        fun doSearch(textToSearch: String, gettingNewGenre: Boolean, @Nullable idlingResource: SimpleIdlingResource?)
         fun onItemSave(film: Film, isSave: Boolean, clickDetail: Boolean)
-        fun resetLimit()
         fun getFirstGenreInSearch(genre: String): String
         fun checkIfDataExistInMemory(textToSearch: String, pagination: Int, limit: Int)
         fun calculateMedia(film: ArrayList<Film>?)
         fun doSearchForTesting(textToSearch: String, genres: List<String>)
         fun getMedia(medianList: List<Double>): Double
+        fun sumPagination()
+        fun resetPagination()
     }
 
     interface Callback {

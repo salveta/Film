@@ -4,6 +4,7 @@ import androidx.annotation.Nullable
 import org.koin.core.KoinComponent
 import com.filmfy.ApplicationConfig
 import com.filmfy.R
+import com.filmfy.di.rx.SchedulerProvider
 import com.filmfy.app.idlingResource.SimpleIdlingResource
 import com.filmfy.app.idlingResource.decrementIdlingResource
 import com.filmfy.app.idlingResource.incrementIdlingResource
@@ -13,8 +14,9 @@ import org.koin.core.inject
 
 const val SCIENCE_FICTION = "SCIENCE FICTION"
 const val SCIENCE = "SCIENCE"
+const val LIMIT = 20
 
-class SearchPresenter(private var view: SearchContract.View?, private var mSearchImpl : SearchImpl ) : SearchContract.Presenter, KoinComponent, SearchContract.Callback  {
+class SearchPresenter(private var view: SearchContract.View?, private var mSearchImpl : SearchImpl, var scheduler: SchedulerProvider) : SearchContract.Presenter, KoinComponent, SearchContract.Callback  {
 
     private val genreRepository: SearchContract.Model<Film> by inject()
     private val favouriteRepository: FavouritesContract.Model<Film> by inject()
@@ -25,17 +27,27 @@ class SearchPresenter(private var view: SearchContract.View?, private var mSearc
     @Nullable
     var mIdlingResource: SimpleIdlingResource? = null
 
+    private var pagination: Int = 0
+
     override fun destroy() {
         view = null
         mSearchImpl.destroy()
     }
 
-    override fun doSearch(textToSearch: String, pagination: Int, limit: Int, gettingNewGenre: Boolean, @Nullable idlingResource: SimpleIdlingResource?) {
+    override fun sumPagination() {
+        this.pagination = pagination.plus(1)
+    }
+
+    override fun resetPagination() {
+        this.pagination = 0
+    }
+
+    override fun doSearch(textToSearch: String, gettingNewGenre: Boolean, @Nullable idlingResource: SimpleIdlingResource?) {
         if(searchGenre(getFirstGenreInSearch(textToSearch))) {
             this.mIdlingResource = idlingResource
             this.cleanFilms = gettingNewGenre
             this.searchGenre = textToSearch
-            checkIfDataExistInMemory(textToSearch, pagination, limit)
+            checkIfDataExistInMemory(textToSearch, pagination, LIMIT)
         }else{
             view?.genreSearchError()
         }
@@ -47,7 +59,7 @@ class SearchPresenter(private var view: SearchContract.View?, private var mSearc
         if(pagination == 0 && !genreRepository.getFilms(searchGenre).isNullOrEmpty()){
             onResponseSearchFilm(genreRepository.getFilms(searchGenre))
         }else{
-            mSearchImpl.getfilms(textToSearch.capitalizeWords(), "5", pagination.toString(), limit.toString(), this)
+            mSearchImpl.getfilms(textToSearch.capitalizeWords(), "5", pagination.toString(), limit.toString(), this, scheduler)
         }
     }
 
@@ -116,10 +128,6 @@ class SearchPresenter(private var view: SearchContract.View?, private var mSearc
 
     private fun getFirstGenre(genre: String): String{
         return genre.substring(0, genre.indexOf(' '))
-    }
-
-    override fun resetLimit() {
-        view?.resetPagination()
     }
 
     override fun onItemSave(film: Film, isSave: Boolean, clickDetail: Boolean) {

@@ -20,11 +20,11 @@ interface RetrofitAdapter {
     fun getFilms(@Query("genre") genre: String,
                  @Query("rating") rating: String,
                  @Query("offset") offset: String,
-                 @Query("limit") limit: String): Observable<Response<FilmRequest>>
+                 @Query("limit") limit: String): Observable<FilmRequest>
 
 //    Mock json call if can't run docker
     @GET(Api.ENDPOINT.FILMS)
-    fun getFilms(): Observable<Response<FilmRequest>>
+    fun getFilms(): Observable<FilmRequest>
 
     companion object {
         fun create(): RetrofitAdapter {

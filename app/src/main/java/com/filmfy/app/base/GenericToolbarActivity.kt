@@ -7,7 +7,7 @@ import androidx.core.content.ContextCompat
 import com.filmfy.R
 import kotlinx.android.synthetic.main.generic_toolbar.*
 
-abstract class GenericToolbarActivity : AppCompatActivity() {
+abstract class GenericToolbarActivity : GenericActivity() {
 
 
     fun configureActionBar(title : String) {
